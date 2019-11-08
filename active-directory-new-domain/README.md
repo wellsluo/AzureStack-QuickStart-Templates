@@ -11,6 +11,7 @@ Last update on 2019/11/08.
   - Default VM size: Standard_DS2_v2
   - OS: Windows Server 2019 Datacenter
   - 1 Nic with static virtual network IP Address: 10.0.0.4
+  - 1 OS disk and 1 Data disk - Managed Disks. 
 - 1 Public Load Balancer.
 - 1 Public IP address (VIP).
 - 1 Virtual Network.
