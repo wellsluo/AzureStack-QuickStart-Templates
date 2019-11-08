@@ -57,13 +57,12 @@
     }
   },
   "variables": {
-    "vhdStorageAccountName": "[concat('vhds', uniqueString(resourceGroup().id))]",
-    "storageAccountType": "Premium_LRS",
+    "storageAccountType": "Standard_LRS",
     "adPDCVMName": "adPDC",
     "adBDCVMName": "adBDC",
     "imagePublisher": "MicrosoftWindowsServer",
     "imageOffer": "WindowsServer",
-    "imageSKU": "2016-Datacenter",
+    "imageSKU": "2019-Datacenter",
     "adAvailabilitySetName": "adAvailabiltySet",
     "publicIPAddressName": "ad-lb-pip",
     "adVMSize": "Standard_DS2_v2",
@@ -86,8 +85,6 @@
     "adPDCRDPNATRuleID": "[concat(variables('adlbID'),'/inboundNatRules/',variables('adPDCRDPNAT'))]",
     "adBDCRDPNATRuleID": "[concat(variables('adlbID'),'/inboundNatRules/',variables('adBDCRDPNAT'))]",
     "adBEAddressPoolID": "[concat(variables('adlbID'),'/backendAddressPools/',variables('adLBBE'))]",
-    "adPDCDataDisk": "ADPDCDataDisk",
-    "adBDCDataDisk": "ADBDCDataDisk",
     "adDataDiskSize": 1000,
     "vnetTemplateUri": "[concat(parameters('_artifactsLocation'),'/nestedtemplates/vnet.json', parameters('_artifactsLocationSasToken'))]",
     "nicTemplateUri": "[concat(parameters('_artifactsLocation'),'/nestedtemplates/nic.json', parameters('_artifactsLocationSasToken'))]",
@@ -101,16 +98,6 @@
     "adBDCConfigurationFunction": "ConfigureADBDC.ps1\\ConfigureADBDC"
   },
   "resources": [
-    {
-      "name": "[variables('vhdStorageAccountName')]",
-      "type": "Microsoft.Storage/storageAccounts",
-      "apiVersion": "2016-01-01",
-      "location": "[resourceGroup().location]",
-      "properties": {
-      },
-      "sku":{"name":"[variables('storageAccountType')]"},
-      "kind":"Storage"
-    },
     {
       "name": "[variables('publicIPAddressName')]",
       "type": "Microsoft.Network/publicIPAddresses",
@@ -288,7 +275,6 @@
       "apiVersion": "2017-12-01",
       "location": "[resourceGroup().location]",
       "dependsOn": [
-        "[resourceId('Microsoft.Storage/storageAccounts',variables('vhdStorageAccountName'))]",
         "[resourceId('Microsoft.Network/networkInterfaces',variables('adPDCNicName'))]",
         "[resourceId('Microsoft.Compute/availabilitySets', variables('adAvailabilitySetName'))]",
         "[resourceId('Microsoft.Network/loadBalancers',variables('adLBName'))]"
@@ -313,18 +299,18 @@
             "version": "latest"
           },
           "osDisk": {
-            "name": "osdisk",
+            "name": "[concat(variables('adPDCVMName'),'_OSDisk')]",
             "managedDisk": {
-                "storageAccountType": "Standard_LRS"   
+                "storageAccountType": "[variables('storageAccountType')]"   
             },
             "caching": "ReadWrite",
             "createOption": "FromImage"
           },
           "dataDisks": [
             {
-              "name": "[concat(variables('adPDCVMName'),'-data-disk1')]",
+              "name": "[concat(variables('adPDCVMName'),'_DataDisk1')]",
               "managedDisk": {
-                  "storageAccountType": "Standard_LRS"   
+                  "storageAccountType": "[variables('storageAccountType')]"   
               },              
               "caching": "None",
               "diskSizeGB": "[variables('adDataDiskSize')]",
@@ -465,10 +451,10 @@
       "apiVersion": "2017-12-01",
       "location": "[resourceGroup().location]",
       "dependsOn": [
-        "[resourceId('Microsoft.Storage/storageAccounts',variables('vhdStorageAccountName'))]",
         "[resourceId('Microsoft.Network/networkInterfaces',variables('adBDCNicName'))]",
         "[resourceId('Microsoft.Compute/availabilitySets', variables('adAvailabilitySetName'))]",
-        "[resourceId('Microsoft.Network/loadBalancers',variables('adLBName'))]"
+        "[resourceId('Microsoft.Network/loadBalancers',variables('adLBName'))]",
+        "[variables('adPDCVMName')]"
       ],
       "properties": {
         "hardwareProfile": {
@@ -490,19 +476,19 @@
             "version": "latest"
           },
           "osDisk": {
-            "name": "osdisk",
-            "vhd": {
-              "uri": "[concat(reference(resourceId('Microsoft.Storage/storageAccounts/', variables('vhdStorageAccountName'))).primaryEndpoints.blob,'vhds1/','osdisk.vhd')]"
-            },
+            "name": "[concat(variables('adBDCVMName'),'_OSDisk')]",
+            "managedDisk": {
+                "storageAccountType": "[variables('storageAccountType')]"   
+            },              
             "caching": "ReadWrite",
             "createOption": "FromImage"
           },
           "dataDisks": [
             {
-              "vhd": {
-                "uri": "[concat(reference(resourceId('Microsoft.Storage/storageAccounts/', variables('vhdStorageAccountName'))).primaryEndpoints.blob,'vhds1/',variables('adBDCDataDisk'),'-1.vhd')]"
-              },
-              "name": "[concat(variables('adBDCVMName'),'-data-disk1')]",
+              "name": "[concat(variables('adBDCVMName'),'_DataDisk1')]",
+              "managedDisk": {
+                  "storageAccountType": "[variables('storageAccountType')]"   
+              },              
               "caching": "None",
               "diskSizeGB": "[variables('adDataDiskSize')]",
               "lun": 0,
