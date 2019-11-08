@@ -454,7 +454,8 @@
         "[resourceId('Microsoft.Network/networkInterfaces',variables('adBDCNicName'))]",
         "[resourceId('Microsoft.Compute/availabilitySets', variables('adAvailabilitySetName'))]",
         "[resourceId('Microsoft.Network/loadBalancers',variables('adLBName'))]",
-        "[variables('adPDCVMName')]"
+        "[variables('adPDCVMName')]",
+        "UpdateBDCNIC"
       ],
       "properties": {
         "hardwareProfile": {
