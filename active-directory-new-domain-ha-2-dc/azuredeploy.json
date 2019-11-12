@@ -59,7 +59,7 @@
   "variables": {
     "storageAccountType": "Standard_LRS",
     "adPDCVMName": "adPDC",
-    "adBDCVMName": "adDC02",
+    "adBDCVMName": "adBDC",
     "imagePublisher": "MicrosoftWindowsServer",
     "imageOffer": "WindowsServer",
     "imageSKU": "2019-Datacenter",
