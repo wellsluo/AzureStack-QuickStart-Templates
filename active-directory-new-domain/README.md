@@ -31,3 +31,6 @@ Click the button below to deploy
     <img src="https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/1-CONTRIBUTION-GUIDE/images/visualizebutton.png"/>
 </a>
 
+## Known issue
+
++ No external FQDN resolving since the DNS server is currently pointed to the DNS Server in Domain Controller.  Workaround: manually add DNS forwarder in DNS Server management console, point to a DNS which can resolve external FQDN, Azure DNS is an option: 168.63.129.16.
