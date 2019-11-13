@@ -8,7 +8,7 @@
             "metadata": {
                 "description": "Name of the Virtual Machine to be created"
             },
-            "defaultValue": "[substring(concat('WinVM-', uniqueString(resourceGroup().id),0,12))]"
+            "defaultValue": "[substring(concat('WinVM-', uniqueString(resourceGroup().id)),0,12)]"
         },
         "adminUsername": {
             "type": "string",
