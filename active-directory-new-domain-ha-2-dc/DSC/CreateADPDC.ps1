@@ -106,6 +106,7 @@
             IsSingleInstance = 'Yes'
             IPAddresses = '168.63.129.16'
             UseRootHint = $false
+            DependsOn = "[xADDomain]FirstDS"
         }
 
         xPendingReboot RebootAfterPromotion
