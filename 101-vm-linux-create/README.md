@@ -18,6 +18,13 @@ Follow the below links to create/download a Linux Image and upload the same to A
 2. https://azure.microsoft.com/en-us/documentation/articles/azure-stack-add-image-pir/
 	Note: please use the default values for linuxPublisher, linuxOffer, linuxSku, linuxVersion found in azuredeploy.json or parameters.json while creating the manifest.json in PIR
 
+## Change
+
+- 2019-11
+  - Rename original deployment template to azuredeploy-unmanagedDisk.json.
+  - Update template to support managed disk. 
+
+
 ## Deployment steps
 1. Deploy to Azure Stack portal using custom deployment
 2. Deploy through Visual Studio using azuredeploy.json and azuredeploy.parameters.json. Note: for other Linux versions deployment, rename the *.azuredeploy.parameters.json to the default name before deploying via VisualStudio
