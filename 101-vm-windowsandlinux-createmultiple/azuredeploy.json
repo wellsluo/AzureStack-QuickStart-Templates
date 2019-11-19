@@ -53,14 +53,15 @@
       "minLength": 1
     },
     "windowsImageSku": {
-      "type": "string",
-      "defaultValue": "2016-Datacenter",
-      "allowedValues": [
-        "2008-R2-SP1",
-        "2012-Datacenter",
-        "2012-R2-Datacenter",
-        "2016-Datacenter"
-      ]
+        "type": "string",
+        "defaultValue": "2019-Datacenter",
+        "allowedValues": [
+            "2019-Datacenter",
+            "2016-Datacenter",
+            "2012-R2-Datacenter",
+            "2012-Datacenter",        
+            "2008-R2-SP1"
+        ]
     },
     "windowsVMCount": {
       "type": "int",
@@ -76,10 +77,11 @@
     },
     "linuxImageSku": {
       "type": "string",
-      "defaultValue": "16.04-LTS",
+      "defaultValue": "18.04-LTS",
       "allowedValues": [
-        "14.04-LTS",
-        "16.04-LTS"
+        "18.04-LTS",
+        "16.04-LTS",
+        "14.04-LTS"
       ]
     },
     "linuxVMCount": {
@@ -93,26 +95,51 @@
   "variables": {
     "windowsImagePublisher": "MicrosoftWindowsServer",
     "windowsImageOffer": "WindowsServer",
-    "windowsOSDiskName": "windowsOSDisk",
     "windowsVnetID": "[resourceId('Microsoft.Network/virtualNetworks', 'virtualnetwork')]",
     "windowsSubnetRef": "[concat(variables('windowsVnetID'), '/subnets/', variables('virtualnetworkSubnet1Name'))]",
-    "windowsVMStorageAccountContainerName": "wvhds",
     "windowsNicName": "[concat(parameters('windowsVMName'), 'NetworkInterface')]",
     "virtualnetworkPrefix": "10.0.0.0/16",
     "virtualnetworkSubnet1Name": "Subnet-1",
     "virtualnetworkSubnet1Prefix": "10.0.0.0/24",
     "virtualnetworkSubnet2Name": "Subnet-2",
     "virtualnetworkSubnet2Prefix": "10.0.1.0/24",
-    "storageAccountName": "[concat('sa', uniqueString(resourceGroup().id))]",
     "linuxImagePublisher": "Canonical",
     "linuxImageOffer": "UbuntuServer",
-    "linuxOSDiskName": "linuxOSDisk",
     "linuxVnetID": "[resourceId('Microsoft.Network/virtualNetworks', 'virtualnetwork')]",
     "LinuxVMSubnetRef": "[concat(variables('linuxVnetID'), '/subnets/', variables('virtualnetworkSubnet2Name'))]",
-    "linuxVMStorageAccountContainerName": "lvhds",
     "linuxNicName": "[concat(parameters('linuxVMName'), 'NetworkInterface')]"
   },
   "resources": [
+    {
+      "name": "virtualnetwork",
+      "type": "Microsoft.Network/virtualNetworks",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [],
+      "tags": {
+        "displayName": "virtualnetwork"
+      },
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[variables('virtualnetworkPrefix')]"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "[variables('virtualnetworkSubnet1Name')]",
+            "properties": {
+              "addressPrefix": "[variables('virtualnetworkSubnet1Prefix')]"
+            }
+          },
+          {
+            "name": "[variables('virtualnetworkSubnet2Name')]",
+            "properties": {
+              "addressPrefix": "[variables('virtualnetworkSubnet2Prefix')]"
+            }
+          }
+        ]
+      }
+    },
     {
       "name": "[concat(variables('windowsNicName'),copyIndex())]",
       "type": "Microsoft.Network/networkInterfaces",
@@ -147,7 +174,6 @@
         "count": "[parameters('windowsVMCount')]"
       },
       "dependsOn": [
-        "[concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
         "[concat('Microsoft.Network/networkInterfaces/', variables('windowsNicName'), copyIndex())]"
       ],
       "properties": {
@@ -167,9 +193,9 @@
             "version": "latest"
           },
           "osDisk": {
-            "name": "WindowsVMOSDisk",
-            "vhd": {
-              "uri": "[concat(reference(concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName')),providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).primaryEndpoints.blob,variables('windowsVMStorageAccountContainerName'),'/',concat(variables('windowsOSDiskName'),copyIndex()),'.vhd')]"
+            "name": "[concat(parameters('windowsVMName'), copyIndex(), '-osDisk')]",
+            "managedDisk":{
+                "storageAccountType": "[parameters('storageAccountType')]"
             },
             "caching": "ReadWrite",
             "createOption": "FromImage"
@@ -183,49 +209,6 @@
           ]
         }
       }
-    },
-    {
-      "name": "virtualnetwork",
-      "type": "Microsoft.Network/virtualNetworks",
-      "location": "[resourceGroup().location]",
-      "dependsOn": [],
-      "tags": {
-        "displayName": "virtualnetwork"
-      },
-      "properties": {
-        "addressSpace": {
-          "addressPrefixes": [
-            "[variables('virtualnetworkPrefix')]"
-          ]
-        },
-        "subnets": [
-          {
-            "name": "[variables('virtualnetworkSubnet1Name')]",
-            "properties": {
-              "addressPrefix": "[variables('virtualnetworkSubnet1Prefix')]"
-            }
-          },
-          {
-            "name": "[variables('virtualnetworkSubnet2Name')]",
-            "properties": {
-              "addressPrefix": "[variables('virtualnetworkSubnet2Prefix')]"
-            }
-          }
-        ]
-      }
-    },
-    {
-      "name": "[variables('storageAccountName')]",
-      "type": "Microsoft.Storage/storageAccounts",
-      "location": "[resourceGroup().location]",
-      "dependsOn": [],
-      "tags": {
-        "displayName": "sa"
-      },
-      "sku": {
-        "name": "[parameters('storageAccountType')]"
-      },
-      "kind": "Storage"
     },
     {
       "name": "[concat(variables('linuxNicName'), copyIndex())]",
@@ -261,7 +244,6 @@
         "count": "[parameters('linuxVMCount')]"
       },
       "dependsOn": [
-        "[concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
         "[concat('Microsoft.Network/networkInterfaces/', variables('linuxNicName'), copyIndex())]"
       ],
       "properties": {
@@ -281,9 +263,9 @@
             "version": "latest"
           },
           "osDisk": {
-            "name": "LinuxVMOSDisk",
-            "vhd": {
-              "uri": "[concat(reference(concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName')),providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).primaryEndpoints.blob,variables('linuxVMStorageAccountContainerName'),'/',concat(variables('linuxOSDiskName'),copyIndex()),'.vhd')]"
+            "name": "[concat(parameters('linuxVMName'), copyIndex(), '-osDisk')]",
+            "managedDisk":{
+                "storageAccountType": "[parameters('storageAccountType')]"
             },
             "caching": "ReadWrite",
             "createOption": "FromImage"
