@@ -28,7 +28,7 @@
         },
         "vmSize": {
             "type": "string",
-            "defaultValue": "Standard_D2s_v3",
+            "defaultValue": "Standard_DS2_v2",
             "metadata": {
                 "description": "Size of the VM for the controller"
             }
@@ -73,7 +73,7 @@
     "resources": [
         {
             "type": "Microsoft.Network/publicIPAddresses",
-            "apiVersion": "2015-06-15",
+            "apiVersion": "2017-10-01",
             "name": "[variables('publicIPAddressName')]",
             "location": "[parameters('location')]",
             "properties": {
@@ -85,20 +85,20 @@
         },
         {
             "type": "Microsoft.Compute/availabilitySets",
-            "apiVersion": "2016-03-30",
+            "apiVersion": "2017-12-01",
             "location": "[parameters('location')]",
             "name": "[variables('adAvailabilitySetName')]",
-            "properties": {
-                "PlatformUpdateDomainCount": 20,
-                "PlatformFaultDomainCount": 2
-            },
             "sku": {
                 "name": "Aligned"
+            },
+            "properties": {
+                "PlatformUpdateDomainCount": 5,
+                "PlatformFaultDomainCount": 2
             }
         },
         {
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2016-09-01",
+            "apiVersion": "2018-09-01",
             "name": "VNet",
             "properties": {
                 "mode": "Incremental",
@@ -127,7 +127,7 @@
         },
         {
             "type": "Microsoft.Network/loadBalancers",
-            "apiVersion": "2015-06-15",
+            "apiVersion": "2017-10-01",
             "name": "[variables('adLBName')]",
             "location": "[parameters('location')]",
             "dependsOn": [
@@ -167,7 +167,7 @@
         },
         {
             "type": "Microsoft.Network/networkInterfaces",
-            "apiVersion": "015-06-15",
+            "apiVersion": "2017-10-01",
             "name": "[variables('adNicName')]",
             "location": "[parameters('location')]",
             "dependsOn": [
@@ -201,7 +201,7 @@
         },
         {
             "type": "Microsoft.Compute/virtualMachines",
-            "apiVersion": "2016-03-30",
+            "apiVersion": "2017-12-01",
             "name": "[variables('adVMName')]",
             "location": "[parameters('location')]",
             "dependsOn": [
@@ -225,7 +225,7 @@
                     "imageReference": {
                         "publisher": "MicrosoftWindowsServer",
                         "offer": "WindowsServer",
-                        "sku": "2016-Datacenter",
+                        "sku": "2019-Datacenter",
                         "version": "latest"
                     },
                     "osDisk": {
@@ -233,7 +233,7 @@
                         "caching": "ReadOnly",
                         "createOption": "FromImage",
                         "managedDisk": {
-                            "storageAccountType": "StandardSSD_LRS"
+                            "storageAccountType": "Standard_LRS"   
                         }
                     },
                     "dataDisks": [
@@ -243,7 +243,7 @@
                             "createOption": "Empty",
                             "diskSizeGB": 20,
                             "managedDisk": {
-                                "storageAccountType": "StandardSSD_LRS"
+                                "storageAccountType": "Standard_LRS"   
                             },
                             "lun": 0
                         }
@@ -260,7 +260,7 @@
             "resources": [
                 {
                     "type": "extensions",
-                    "apiVersion": "2016-03-30",
+                    "apiVersion": "2017-12-01",
                     "name": "CreateADForest",
                     "location": "[parameters('location')]",
                     "dependsOn": [
@@ -293,7 +293,7 @@
         },
         {
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2016-09-01",
+            "apiVersion": "2018-09-01",
             "name": "UpdateVNetDNS",
             "dependsOn": [
                 "CreateADForest"

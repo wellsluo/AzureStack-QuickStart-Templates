@@ -9,10 +9,22 @@
         "description": "This is the name of your virtual machine"
       }
     },
-    "imageName": {
+    "osDiskUrlParam": {
       "type": "string",
       "metadata": {
-        "description": "The name of the custom image."
+        "description": "URL to OS disk resource"
+      }
+    },
+    "dataDiskUrlParam": {
+      "type": "string",
+      "metadata": {
+        "description": "URL to data disk resource"
+      }
+    },
+    "dnsNameForPublicIP": {
+      "type": "string",
+      "metadata": {
+        "description": "Unique DNS Name for the Public IP used to access the Virtual Machine."
       }
     },
     "adminUserName": {
@@ -25,6 +37,16 @@
       "type": "securestring",
       "metadata": {
         "description": "Password for the Virtual Machine"
+      }
+    },
+    "osType": {
+      "type": "string",
+      "allowedValues": [
+        "windows",
+        "linux"
+      ],
+      "metadata": {
+        "description": "This is the OS that your VM will be running"
       }
     },
     "vmSize": {
@@ -50,7 +72,11 @@
     "subnet1Prefix": "10.0.0.0/24",
     "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]",
     "subnet1Ref": "[concat(variables('vnetID'),'/subnets/',variables('subnet1Name'))]",
-    "networkSecurityGroupName": "SecurityGroup"
+    "networkSecurityGroupName": "SecurityGroup",
+    "osDiskUrl": "[parameters('osDiskUrlParam')]",
+    "dataDiskUrl": "[parameters('dataDiskUrlParam')]",
+    "osDiskVhdName": "[concat(variables('osDiskUrl'),'-',variables('vmName'),'.vhd')]",
+    "dataDiskVhdName": "[concat(variables('dataDiskUrl'),'-',variables('vmName'),'.vhd')]"
   },
   "resources": [
     {
@@ -142,9 +168,32 @@
           "adminPassword": "[parameters('adminPassword')]"
         },
         "storageProfile": {
-            "imageReference": {
-                "id": "[resourceId('Microsoft.Compute/images', parameters('imageName'))]"
+          "dataDisks": [
+            {
+              "name": "[concat(variables('vmName'),'-dataDisk')]",
+              "lun": 0,
+              "caching": "ReadOnly",
+              "createOption": "FromImage",
+              "image": {
+                "uri": "[variables('dataDiskUrl')]"
+              },
+              "vhd": {
+                "uri": "[variables('dataDiskVhdName')]"
+              }
             }
+          ],
+          "osDisk": {
+            "name": "[concat(variables('vmName'),'-osDisk')]",
+            "osType": "[parameters('osType')]",
+            "caching": "ReadWrite",
+            "createOption": "FromImage",
+            "image": {
+              "uri": "[variables('osDiskUrl')]"
+            },
+            "vhd": {
+              "uri": "[variables('osDiskVhdName')]"
+            }
+          }
         },
         "networkProfile": {
           "networkInterfaces": [
